@@ -1,0 +1,87 @@
+---
+const { imagenes = [] } = Astro.props;
+---
+
+<div class="relative inline-block">
+  <!-- Botón que activa el popover -->
+  <button
+    class="bg-[#529B5F] text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+    onclick="toggleCustomPopover(this)"
+  >
+    Tecnologías
+  </button>
+
+  <!-- Popover oculto por defecto -->
+
+  <div
+    class="popover absolute left-1/2 transform -translate-x-1/2 -top-16 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 transition-opacity duration-200 pointer-events-none z-40 p-2"
+  >
+    <!-- Contenedor Flex para las imágenes SVG con desplazamiento horizontal -->
+    <div class="flex space-x-2 overflow-x-auto max-w-full">
+      {
+        imagenes.map((imagen: string | null | undefined) => (
+          <div class="flex-none w-6 h-6">
+            <img
+              src={imagen}
+              alt="Logo tecnología"
+              class="w-full h-full object-contain"
+            />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <script>
+    // Declaración para TypeScript para evitar el error en `window`
+    declare global {
+      interface Window {
+        toggleCustomPopover: (button: HTMLElement) => void;
+        closePopoverOnClickOutside: (event: MouseEvent) => void;
+      }
+    }
+
+    // Definir toggleCustomPopover en el ámbito global
+    window.toggleCustomPopover = function (button) {
+      const popover = button.nextElementSibling;
+
+      if (popover) {
+        const isVisible = popover.classList.contains("opacity-100");
+
+        if (isVisible) {
+          // Ocultar el popover
+          popover.classList.remove("opacity-100", "pointer-events-auto");
+          popover.classList.add("opacity-0", "pointer-events-none");
+          document.removeEventListener(
+            "click",
+            window.closePopoverOnClickOutside
+          );
+        } else {
+          // Mostrar el popover y agregar el event listener para cerrar al hacer clic fuera
+          popover.classList.remove("opacity-0", "pointer-events-none");
+          popover.classList.add("opacity-100", "pointer-events-auto");
+          document.addEventListener("click", window.closePopoverOnClickOutside);
+        }
+      }
+    };
+
+    // Cerrar el popover al hacer clic fuera
+    window.closePopoverOnClickOutside = function (event: MouseEvent) {
+      const popover = document.querySelector(".popover.opacity-100");
+      const target = event.target as HTMLElement; // Cast explícito a HTMLElement
+
+      if (
+        popover &&
+        !popover.contains(target) &&
+        !popover.previousElementSibling?.contains(target)
+      ) {
+        popover.classList.remove("opacity-100", "pointer-events-auto");
+        popover.classList.add("opacity-0", "pointer-events-none");
+        document.removeEventListener(
+          "click",
+          window.closePopoverOnClickOutside
+        );
+      }
+    };
+  </script>
+</div>
